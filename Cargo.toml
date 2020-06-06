@@ -1,0 +1,10 @@
+[package]
+name = "offbrand"
+description = "we have brand at home"
+version = "0.1.0"
+authors = ["Isabelle L. <me@izzabelle.dev>"]
+edition = "2018"
+
+[dependencies]
+minifb = {git = "https://github.com/emoon/rust_minifb" }
+thiserror = "1.0.19"

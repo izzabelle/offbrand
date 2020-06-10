@@ -1,4 +1,5 @@
-// a 32 bit rgb color
+// a 32 bit rgb
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Color {
     pub r: u8,
     pub g: u8,
@@ -6,12 +7,10 @@ pub struct Color {
 }
 
 impl Color {
-    /// create a new color
     pub fn new(r: u8, g: u8, b: u8) -> Color {
         Color { r, g, b }
     }
 
-    /// return the color as a u32
     pub fn as_u32(&self) -> u32 {
         let (r, g, b) = (self.r as u32, self.g as u32, self.b as u32);
         (r << 16) | (g << 8) | b

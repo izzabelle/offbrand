@@ -3,6 +3,7 @@ pub mod color;
 
 // namespacing
 use color::Color;
+pub use minifb::{Key, MouseButton};
 use minifb::{Window, WindowOptions};
 
 // error type
@@ -19,12 +20,13 @@ pub type Result<T> = std::result::Result<T, Error>;
 struct PixelBuffer {
     buffer: Vec<u32>,
     width: usize,
+    height: usize,
 }
 
 impl PixelBuffer {
     // create a new pixel buffer
     fn new(width: usize, height: usize) -> PixelBuffer {
-        PixelBuffer { width, buffer: vec![0; width * height] }
+        PixelBuffer { width, height, buffer: vec![0; width * height] }
     }
 }
 
@@ -37,20 +39,6 @@ impl std::convert::AsRef<Vec<u32>> for PixelBuffer {
 impl std::convert::AsMut<Vec<u32>> for PixelBuffer {
     fn as_mut(&mut self) -> &mut Vec<u32> {
         &mut self.buffer
-    }
-}
-
-impl std::ops::Index<(usize, usize)> for PixelBuffer {
-    type Output = u32;
-
-    fn index(&self, index: (usize, usize)) -> &u32 {
-        &self.buffer[index.1 * self.width + index.0]
-    }
-}
-
-impl std::ops::IndexMut<(usize, usize)> for PixelBuffer {
-    fn index_mut(&mut self, index: (usize, usize)) -> &mut u32 {
-        &mut self.buffer[index.1 * self.width + index.0]
     }
 }
 
@@ -79,11 +67,26 @@ impl Context {
 
     /// clears the pixel buffer
     pub fn clear(&mut self) {
-        self.pixel_buffer.as_mut().iter_mut().for_each(|pixel| *pixel = color::WHITE.as_u32());
+        self.pixel_buffer.as_mut().iter_mut().for_each(|pixel| *pixel = color::BLACK.as_u32());
+    }
+
+    /// checks if window is open
+    pub fn is_open(&self) -> bool {
+        self.window.is_open()
     }
 
     /// set a pixel
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
         self.pixel_buffer[(x, y)] = color.as_u32();
+    }
+
+    /// get mouse position
+    pub fn get_mouse_pos(&self) -> Option<(f32, f32)> {
+        self.window.get_mouse_pos(minifb::MouseMode::Discard)
+    }
+
+    /// get mouse down
+    pub fn get_mouse_down(&self, button: MouseButton) -> bool {
+        self.window.get_mouse_down(button)
     }
 }

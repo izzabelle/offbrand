@@ -1,5 +1,8 @@
+#![allow(dead_code)]
+
 // modules
 pub mod color;
+pub mod prelude;
 
 // namespacing
 use color::Color;
@@ -18,7 +21,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 // pixel buffer for internal use
 struct PixelBuffer {
-    buffer: Vec<u32>,
+    data: Vec<u32>,
     width: usize,
     height: usize,
 }
@@ -26,19 +29,31 @@ struct PixelBuffer {
 impl PixelBuffer {
     // create a new pixel buffer
     fn new(width: usize, height: usize) -> PixelBuffer {
-        PixelBuffer { width, height, buffer: vec![0; width * height] }
+        PixelBuffer { width, height, data: vec![0; height * width] }
     }
-}
 
-impl std::convert::AsRef<Vec<u32>> for PixelBuffer {
-    fn as_ref(&self) -> &Vec<u32> {
-        &self.buffer
+    // index pixel buffer !! will panic if given x/y are out of bounds
+    fn at(&self, x: usize, y: usize) -> &u32 {
+        assert!(x < self.width);
+        assert!(y < self.height);
+        &self.data[y * self.width + x]
     }
-}
 
-impl std::convert::AsMut<Vec<u32>> for PixelBuffer {
-    fn as_mut(&mut self) -> &mut Vec<u32> {
-        &mut self.buffer
+    // index pixel buffer mut !! will panic if given x/y are out of bounds
+    fn at_mut(&mut self, x: usize, y: usize) -> &mut u32 {
+        assert!(x < self.width);
+        assert!(y < self.height);
+        &mut self.data[y * self.width + x]
+    }
+
+    // returns the buffer as a slice
+    fn as_ref(&self) -> &[u32] {
+        &self.data
+    }
+
+    // returns a mutable reference to a slice
+    fn as_mut_ref(&mut self) -> &mut [u32] {
+        &mut self.data
     }
 }
 
@@ -61,13 +76,14 @@ impl Context {
 
     /// render the internal buffer to the screen
     pub fn present(&mut self) -> Result<()> {
-        self.window.update_with_buffer(self.pixel_buffer.as_ref(), self.width, self.height)?;
+        self.window.update_with_buffer(&self.pixel_buffer.as_ref(), self.width, self.height)?;
         Ok(())
     }
 
     /// clears the pixel buffer
-    pub fn clear(&mut self) {
-        self.pixel_buffer.as_mut().iter_mut().for_each(|pixel| *pixel = color::BLACK.as_u32());
+    pub fn clear(&mut self, color: Option<color::Color>) {
+        let color = color.unwrap_or(color::BLACK);
+        self.pixel_buffer.as_mut_ref().iter_mut().for_each(|pixel| *pixel = color.as_u32());
     }
 
     /// checks if window is open
@@ -77,7 +93,7 @@ impl Context {
 
     /// set a pixel
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
-        self.pixel_buffer[(x, y)] = color.as_u32();
+        *self.pixel_buffer.at_mut(x, y) = color.as_u32();
     }
 
     /// get mouse position

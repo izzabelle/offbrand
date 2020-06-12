@@ -92,8 +92,23 @@ impl Context {
     }
 
     /// set a pixel
-    pub fn set_pixel(&mut self, x: usize, y: usize, color: Color) {
-        *self.pixel_buffer.at_mut(x, y) = color.as_u32();
+    pub fn insert_pixel(&mut self, x: usize, y: usize, color: Color) {
+        if x < self.pixel_buffer.width && y < self.pixel_buffer.height {
+            *self.pixel_buffer.at_mut(x, y) = color.as_u32();
+        }
+    }
+
+    /// insert a slice into the pixel buffer x/y are offsets w/h are the dimensions of the slice
+    /// !! this method can panic if the given buffer dimensions don't match the buffer length
+    pub fn insert_slice(&mut self, x: usize, y: usize, w: usize, h: usize, slice: &[Color]) {
+        assert!(w * h == slice.len());
+
+        for i in x..(x + w) {
+            for j in y..(y + h) {
+                let color = slice[w * (i - x) + (j - y)];
+                self.insert_pixel(i, j, color);
+            }
+        }
     }
 
     /// get mouse position

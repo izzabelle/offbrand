@@ -82,7 +82,7 @@ impl Context {
 
     /// clears the pixel buffer
     pub fn clear(&mut self, color: Option<color::Color>) {
-        let color = color.unwrap_or(color::BLACK);
+        let color = color.unwrap_or(Color::BLACK);
         self.pixel_buffer.as_mut_ref().iter_mut().for_each(|pixel| *pixel = color.as_u32());
     }
 

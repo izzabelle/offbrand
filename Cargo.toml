@@ -8,3 +8,4 @@ edition = "2018"
 [dependencies]
 minifb = {git = "https://github.com/emoon/rust_minifb" }
 thiserror = "1.0.19"
+image = "0.23.5"

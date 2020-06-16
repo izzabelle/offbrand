@@ -1,23 +1,35 @@
 #![allow(dead_code)]
 
 // modules
-pub mod color;
+mod color;
+mod img;
 pub mod prelude;
 
 // namespacing
-use color::Color;
+pub use color::Color;
+pub use img::Image;
 pub use minifb::{Key, MouseButton};
 use minifb::{Window, WindowOptions};
 
-// error type
+/// error type
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error(transparent)]
     MiniFb(#[from] minifb::Error),
+    #[error(transparent)]
+    Image(#[from] image::ImageError),
 }
 
-// result type
+/// result type
 pub type Result<T> = std::result::Result<T, Error>;
+
+/// renderable trait
+pub trait Renderable {
+    /// return the dimensions of the structure
+    fn dimensions(&self) -> (usize, usize);
+    /// return a slice of row major data to be rendered
+    fn data(&self) -> &Vec<Color>;
+}
 
 // pixel buffer for internal use
 struct PixelBuffer {
@@ -102,13 +114,24 @@ impl Context {
     /// !! this method can panic if the given buffer dimensions don't match the buffer length
     pub fn insert_slice(&mut self, x: usize, y: usize, w: usize, h: usize, slice: &[Color]) {
         assert!(w * h == slice.len());
+        let (ox, oy) = (x, y);
 
-        for i in x..(x + w) {
-            for j in y..(y + h) {
-                let color = slice[w * (i - x) + (j - y)];
-                self.insert_pixel(i, j, color);
+        for x in 0..w {
+            for y in 0..h {
+                self.insert_pixel(x + ox, y + oy, slice[y * w + x])
             }
         }
+    }
+
+    /// render a structure that impl's the renderable trait
+    pub fn render<T>(&mut self, x: usize, y: usize, renderable: &T)
+    where
+        T: Renderable,
+    {
+        let (w, h) = renderable.dimensions();
+        let slice = renderable.data();
+
+        self.insert_slice(x, y, w, h, &slice);
     }
 
     /// get mouse position

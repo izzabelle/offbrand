@@ -74,16 +74,24 @@ pub struct Context {
     pixel_buffer: PixelBuffer,
     height: usize,
     width: usize,
+    scale: usize,
     window: Window,
 }
 
 impl Context {
     /// create a new context
-    pub fn new(width: usize, height: usize, title: String) -> Result<Context> {
-        let pixel_buffer = PixelBuffer::new(height, width);
-        let mut window = Window::new(&title, width, height, WindowOptions::default())?;
+    pub fn new(
+        width: usize,
+        height: usize,
+        title: String,
+        scale: Option<usize>,
+    ) -> Result<Context> {
+        let scale = scale.unwrap_or(1);
+        let pixel_buffer = PixelBuffer::new(width, height);
+        let mut window = Window::new(&title, width * scale, height * scale, WindowOptions::default())?;
         window.limit_update_rate(Some(std::time::Duration::from_micros(16600)));
-        Ok(Context { pixel_buffer, window, height, width })
+
+        Ok(Context { pixel_buffer, window, height, width, scale })
     }
 
     /// render the internal buffer to the screen
